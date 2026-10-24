@@ -1,0 +1,7 @@
+.env
+.env.*
+*.json.bak
+Better-life-*.json
+node_modules/
+.DS_Store
+.openai/

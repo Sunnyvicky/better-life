@@ -1,0 +1,19 @@
+{
+  "name": "Better life",
+  "short_name": "Better life",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f9f6",
+  "theme_color": "#bb7b6a",
+  "lang": "zh-Hant",
+  "icons": [
+    {
+      "src": "./icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "id": "./"
+}
