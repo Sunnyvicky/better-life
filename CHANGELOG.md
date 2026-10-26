@@ -1,3 +1,17 @@
+# Better life 1.1.3 — 2026-10-26
+
+- 依使用者 AI_TEST_OK 與 AI_TIMEOUT_REQUEST 的實際結果，將診斷縮小為生成階段；未宣稱已確認 POST 網路、模型或帳戶額度的單一根因。
+- 預設改採 Gemini 3.5 Flash-Lite（minimal），原 Gemini 3.8 Flash（low）保留於 AI 設定下拉選單，兩者均支援文字與照片。不會失敗後自動換模型或重送。
+- 增加「測試 AI 回覆（使用少量額度）」：只送出 Reply with OK only，一次 POST、最多等待 20 秒；沒有食物、照片或健康紀錄。由使用者按下才執行，會使用 API 生成額度，並顯示與 metadata 查詢不同的結果碼。
+- 模型選擇與金鑰保留在本次頁面記憶，更新不更動既有手機紀錄。
+- 46 項模擬／資料測試通過；未持有真實金鑰，因此尚未在使用者裝置驗證兩模型的生成可用性。這次模型選擇依官方低延遲定位調整，並非已證實原模型故障。
+
+官方規格：
+https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite
+https://ai.google.dev/gemini-api/docs/generate-content/thinking
+
+---
+
 # Better life 1.1.2 — 2026-10-26
 
 - 新增「AI 設定 → 測試 Google 連線」。只呼叫 models.get 讀取模型資訊，不送健康資料、不呼叫 generateContent；最長 12 秒，沒有自動重試。

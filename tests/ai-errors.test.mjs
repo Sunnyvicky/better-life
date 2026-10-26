@@ -5,10 +5,10 @@ import {analyzeMeal, AI_TIMEOUT_MS} from '../ai.js';
 const input={apiKey:'test-only-not-a-real-api-key',description:'便當一份'};
 const meal={name:'便當',portion:'一份',note:'估算',calories:600,protein:30,carbs:60,fiber:null,fat:20};
 
-test('simple meal request explicitly uses low thinking with enough output room',async()=>{
+test('simple meal request explicitly uses minimal thinking with enough output room',async()=>{
  await analyzeMeal(input,async(url,options)=>{
   const request=JSON.parse(options.body);
-  assert.equal(request.generationConfig.thinkingConfig.thinkingLevel,'low');
+  assert.equal(request.generationConfig.thinkingConfig.thinkingLevel,'minimal');
   assert.equal(request.generationConfig.maxOutputTokens,8192);
   return Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(meal)}]}}]});
  });

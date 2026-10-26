@@ -39,3 +39,33 @@ test('generation stages identify headers versus response body without exposing k
  await analyzeMeal({apiKey,description:'白飯',onStage:stage=>stages.push(stage)},async()=>Response.json({candidates:[{content:{parts:[{text:JSON.stringify({name:'白飯',portion:'一碗',note:'',calories:250,protein:5,carbs:55,fiber:null,fat:0.5})}]}}]}));
  assert.deepEqual(stages,['request','headers','body','parse']);
 });
+
+test('tiny generation probe uses selected model, sends OK prompt only and makes one request',async()=>{
+ let calls=0;
+ const result=await testConnection({apiKey,generation:true},async(url,options)=>{
+  calls++;assert.equal(url.endsWith(DEFAULT_MODEL+':generateContent'),true);assert.equal(options.method,'POST');
+  const body=JSON.parse(options.body);assert.equal(body.contents[0].parts[0].text,'Reply with OK only.');
+  assert.equal(body.generationConfig.thinkingConfig.thinkingLevel,'minimal');
+  assert.equal(options.body.includes(apiKey),false);assert.equal(options.body.includes('白飯'),false);
+  return Response.json({candidates:[{content:{parts:[{text:'OK'}]}}]});
+ });
+ assert.equal(calls,1);assert.equal(result.code,'AI_GENERATE_OK');assert.equal(result.model,DEFAULT_MODEL);
+});
+test('original model remains selectable with its supported thinking level',async()=>{
+ let urlSeen;
+ await analyzeMeal({apiKey,model:'gemini-3.8-flash',description:'白飯'},async(url,options)=>{
+  urlSeen=url;assert.equal(JSON.parse(options.body).generationConfig.thinkingConfig.thinkingLevel,'low');
+  return Response.json({candidates:[{content:{parts:[{text:JSON.stringify({name:'白飯',portion:'一碗',note:'',calories:250,protein:5,carbs:55,fiber:null,fat:0.5})}]}}]});
+ });
+ assert.equal(urlSeen.includes('gemini-3.8-flash:generateContent'),true);
+});
+test('tiny generation has a distinct timeout and incomplete-output diagnosis',async()=>{
+ await assert.rejects(()=>testConnection({apiKey,generation:true,timeoutMs:10},async()=>new Promise(()=>{})),{code:'AI_GENERATE_TIMEOUT'});
+ await assert.rejects(()=>testConnection({apiKey,generation:true},async()=>Response.json({candidates:[{finishReason:'MAX_TOKENS'}]})),{code:'AI_GENERATE_RESPONSE'});
+});
+test('unsupported model is rejected before sending credentials',async()=>{
+ let calls=0;const fetcher=async()=>{calls++;};
+ await assert.rejects(()=>testConnection({apiKey,model:'https://untrusted.example'},fetcher),{code:'AI_MODEL'});
+ await assert.rejects(()=>analyzeMeal({apiKey,model:'unknown',description:'白飯'},fetcher),{code:'AI_MODEL'});
+ assert.equal(calls,0);
+});
