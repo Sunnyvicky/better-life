@@ -25,3 +25,5 @@
 .habit-summary span,.habit-summary small{font-size:12px;color:var(--muted)}
 .habit-summary strong{font-size:21px}
 @media(max-width:480px){.sleep-overview strong{font-size:25px}.sleep-overview b{font-size:17px}.sleep-card>.row{align-items:flex-start}.sleep-card .record{align-items:flex-start}.habit-summary strong{font-size:18px}}
+
+[hidden]{display:none!important}
