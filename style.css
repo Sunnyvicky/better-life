@@ -6,3 +6,22 @@
 @media print{nav,header,.actions,.record-actions,.head-actions,.btn{display:none!important}.shell{padding:0}.card{box-shadow:none;break-inside:avoid}body{background:white}}
 
 @media(max-width:380px){.brand small{font-size:8px;letter-spacing:.3px;white-space:nowrap}.brand strong{font-size:18px}.brand{gap:7px}.brand img{width:36px;height:36px}.head-actions{gap:5px}.icon-button{width:36px;height:36px}.intro{align-items:start}.intro h1{font-size:24px}.intro .pill{font-size:9px;padding:7px}.hero-top>div{min-width:0}.countdown{min-width:100px;max-width:112px;flex-shrink:0;padding:10px}.countdown b{font-size:21px}.hero-number{font-size:44px;letter-spacing:-2px}.hero small{font-size:11px}.nutrition{gap:10px}.ring{width:115px;height:115px}.ring-inner{width:93px;height:93px}.ring b{font-size:24px}.form-grid{grid-template-columns:1fr}.qty-grid{grid-template-columns:1fr}.photo-gallery{gap:6px}}
+:root{--sleep-accent:#797b9e}
+.sleep-card{background:linear-gradient(130deg,#f1f0f8,#fff 70%)}
+.sleep-card h2{color:#5e607e;margin-bottom:0}
+.sleep-overview{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;padding:22px 0 4px}
+.sleep-overview small,.sleep-overview strong,.sleep-overview b{display:block}
+.sleep-overview strong{font-size:29px;font-weight:650;color:#5e607e;letter-spacing:-.5px;margin-top:8px}
+.sleep-overview b{font-size:19px;font-weight:550;margin-top:12px}
+.sleep-calculation{background:#f1f0f8;border-radius:17px;margin-top:18px;padding:18px;display:grid;gap:8px;color:#5e607e}
+.sleep-calculation strong{font-size:23px}
+.achievement{background:#eaf3e9;border:1px solid #d4e4d0;color:#426b48;border-radius:16px;padding:15px 16px;margin-top:14px;display:flex;align-items:center;gap:12px}
+.achievement>span{font-size:26px}
+.achievement strong,.achievement div>span{display:block}
+.achievement strong{font-size:19px;margin-bottom:4px}
+.achievement div>span{font-size:12px;line-height:1.6}
+.habit-summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.habit-summary>div{padding:14px;background:#f7f8f4;border-radius:15px;display:grid;gap:7px}
+.habit-summary span,.habit-summary small{font-size:12px;color:var(--muted)}
+.habit-summary strong{font-size:21px}
+@media(max-width:480px){.sleep-overview strong{font-size:25px}.sleep-overview b{font-size:17px}.sleep-card>.row{align-items:flex-start}.sleep-card .record{align-items:flex-start}.habit-summary strong{font-size:18px}}

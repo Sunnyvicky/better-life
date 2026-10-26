@@ -1,5 +1,5 @@
 // Scope all URLs and caches to this GitHub Pages project, including /repo/ paths.
-const VERSION = '1.0.1';
+const VERSION = '1.1.0';
 const BASE = new URL('./', self.location.href);
 const PREFIX = 'better-life-github:' + BASE.pathname + ':';
 const CACHE = PREFIX + VERSION;
