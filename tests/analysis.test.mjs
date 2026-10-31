@@ -63,3 +63,43 @@ test('view handles empty data, one day, missing goals, incomplete values and cha
  const chart=trendChart(dailyMetrics(d,state.from,state.to),'calories',1500,'2026-10-31');assert.equal((chart.match(/<polyline /g)||[]).length,2);
  state.from=state.to;d.settings.calories=null;html=renderAnalysis(d,state,'2026-10-31');assert.match(html,/尚未設定目標/);assert.doesNotMatch(html,/NaN|undefined/);
 });
+
+test('protein subtotal already at target counts even with blank meals on October 27 and 28',()=>{
+ const d=setup();d.settings.protein=80;
+ d.meals=[meal('2026-10-27',500,42),meal('2026-10-27',500,40),meal('2026-10-27',100,null),meal('2026-10-28',700,85),meal('2026-10-28',100,undefined),meal('2026-10-29',1400,81)];
+ const before=JSON.stringify(d),rows=dailyMetrics(d,'2026-10-25','2026-10-31');
+ assert.equal(metricSummary(rows,'protein').reached,3);
+ assert.equal(rows[2].protein.value,82);assert.equal(rows[2].protein.incomplete,true);assert.equal(rows[2].protein.reached,true);
+ assert.equal(rows[3].protein.value,85);assert.equal(rows[3].protein.reached,true);
+ assert.equal(rows[0].protein.value,null);assert.equal(rows[0].protein.reached,null);
+ assert.equal(JSON.stringify(d),before);
+ d.settings.protein=90;assert.equal(metricSummary(dailyMetrics(d,'2026-10-25','2026-10-31'),'protein').reached,0);
+});
+
+test('unknown protein never becomes zero or failure, but known zero and exact target remain valid',()=>{
+ const d=setup();d.settings.protein=80;
+ d.meals=[meal('2026-10-25',500,null),meal('2026-10-26',500,60),meal('2026-10-26',500,null),meal('2026-10-27',500,80),meal('2026-10-27',null,null),meal('2026-10-28',500,0)];
+ const rows=dailyMetrics(d,'2026-10-25','2026-10-28');
+ assert.equal(rows[0].protein.value,null);assert.equal(rows[0].protein.reached,null);
+ assert.equal(rows[1].protein.value,60);assert.equal(rows[1].protein.reached,null);
+ assert.equal(rows[2].protein.reached,true);assert.equal(rows[2].calories.value,null);assert.equal(rows[2].calories.reached,null);
+ assert.equal(rows[3].protein.value,0);assert.equal(rows[3].protein.reached,false);
+});
+
+test('partial protein is displayed as a lower bound with a separate chart point',()=>{
+ const d=setup();d.settings.protein=80;d.meals=[meal('2026-10-27',500,82),meal('2026-10-27',200,null)];
+ const html=renderAnalysis(d,{period:'7',metric:'protein',from:'2026-10-25',to:'2026-10-31',day:'2026-10-27'},'2026-10-31');
+ assert.match(html,/至少 82 g/);assert.match(html,/已達目標，計入達標天數/);assert.match(html,/達標 <\/small>1<small> \/ 7 天/);
+ const chart=trendChart(dailyMetrics(d,'2026-10-25','2026-10-31'),'protein',80,'2026-10-27');
+ assert.match(chart,/fill:white/);assert.doesNotMatch(chart,/<polyline/);
+});
+
+test('partial successes do not inflate comparison rates or complete-day coverage',()=>{
+ const d=setup();d.settings.protein=80;
+ for(const date of rangeDays('2026-10-17','2026-10-30')){
+  d.meals.push(meal(date,500,date<'2026-10-24'?50:85));
+  if(date>='2026-10-24'&&date<='2026-10-26')d.meals.push(meal(date,100,null));
+ }
+ const findings=periodInsights(d,'2026-10-24','2026-10-30','2026-10-31');
+ assert.equal(findings.some(f=>f.key==='protein'&&/百分點/.test(f.text)),false);
+});

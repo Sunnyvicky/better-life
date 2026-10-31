@@ -20,25 +20,27 @@ export function rangeDays(from,to){
 export function metricValue(key,value){
  return key==='sleep'?formatMinutes(value):Number(value).toLocaleString('zh-TW',{maximumFractionDigits:1})+' '+metrics[key].unit;
 }
-// A missing nutrition field makes that day's metric incomplete, rather than zero.
+// Missing nutrition stays unknown, but known protein can already prove a minimum goal.
 // Even complete values represent recorded food, not proof that every meal was logged.
 export function dailyMetrics(data,from,to){
- const rows=rangeDays(from,to).map(date=>({date,...Object.fromEntries(Object.keys(metrics).map(k=>[k,{value:null,known:0,entries:0,incomplete:false}]))}));
+ const rows=rangeDays(from,to).map(date=>({date,...Object.fromEntries(Object.keys(metrics).map(k=>[k,{value:null,known:0,entries:0,filled:0,incomplete:false}]))}));
  const byDate=new Map(rows.map(r=>[r.date,r]));
  for(const meal of data.meals){
   const row=byDate.get(meal.date);if(!row)continue;
   for(const key of ['calories','protein']){
    const cell=row[key];cell.entries++;
-   if(meal[key]==null)cell.incomplete=true;else cell.known+=meal[key];
+   if(meal[key]==null)cell.incomplete=true;else {cell.known+=meal[key];cell.filled++;}
   }
  }
  for(const record of data.water){const row=byDate.get(record.date);if(row){row.water.entries++;row.water.known+=record.ml;}}
  for(const record of data.sleep||[]){const row=byDate.get(record.date);if(row){row.sleep.entries++;row.sleep.known+=sleepMinutes(record.start,record.end);}}
  for(const row of rows)for(const key of Object.keys(metrics)){
   const cell=row[key],goal=data.settings[metrics[key].setting];
-  cell.value=cell.entries&&!cell.incomplete?cell.known:null;
+  cell.value=cell.entries&&(!cell.incomplete||(key==='protein'&&cell.filled>0))?cell.known:null;
   cell.goal=goal>0?goal:null;
   cell.reached=cell.value==null||cell.goal==null?null:key==='calories'?cell.value<=goal:cell.value>=goal;
+  // With missing protein, a subtotal below goal cannot prove failure; above it proves success.
+  if(key==='protein'&&cell.incomplete&&cell.reached===false)cell.reached=null;
  }
  return rows;
 }
@@ -55,7 +57,8 @@ export function periodInsights(data,from,to,now){
  const candidates=[];
  for(const key of Object.keys(metrics)){
   const label=metrics[key].label,goal=data.settings[metrics[key].setting];if(!(goal>0))continue;
-  const current=metricSummary(rows,key),prior=metricSummary(previous,key);
+  // Rate comparisons use only complete days in both numerator and denominator.
+  const current=metricSummary(rows.filter(r=>!r[key].incomplete),key),prior=metricSummary(previous.filter(r=>!r[key].incomplete),key);
   const sufficient=count=>count>=Math.max(4,Math.ceil(length*.7));
   if(previousFrom>=data.settings.startDate&&sufficient(current.recorded)&&sufficient(prior.recorded)){
    const rate=Math.round(current.reached/current.recorded*100),old=Math.round(prior.reached/prior.recorded*100),delta=rate-old;
@@ -67,7 +70,7 @@ export function periodInsights(data,from,to,now){
   if(length>=28){
    const weekend=rows.filter(r=>[0,6].includes(new Date(r.date+'T12:00:00Z').getUTCDay()));
    const weekday=rows.filter(r=>![0,6].includes(new Date(r.date+'T12:00:00Z').getUTCDay()));
-   const a=metricSummary(weekend,key),b=metricSummary(weekday,key);
+   const a=metricSummary(weekend.filter(r=>!r[key].incomplete),key),b=metricSummary(weekday.filter(r=>!r[key].incomplete),key);
    if(a.recorded>=Math.max(4,Math.ceil(weekend.length*.7))&&b.recorded>=Math.max(8,Math.ceil(weekday.length*.7))){
     const weekendMiss=1-a.reached/a.recorded,weekdayMiss=1-b.reached/b.recorded;
     if(weekendMiss-weekdayMiss>=.25)candidates.push({key,score:110,text:'這段期間，'+label+'在週末較常'+(key==='calories'?'超過目標':'未達標')+'（週末 '+Math.round(weekendMiss*100)+'%、平日 '+Math.round(weekdayMiss*100)+'%）。'});
