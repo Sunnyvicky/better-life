@@ -146,11 +146,11 @@ async function workerHarness(path='/better-life/') {
 
 for(const path of ['/','/better-life/'])test('offline shell works at '+path+' and cleans only its own cache',async()=>{
   const h=await workerHarness(path);await h.lifecycle('install');await h.lifecycle('activate');
-  assert.equal(h.network.length,11);
+  assert.equal(h.network.length,13);
   assert.equal(h.network.every(url=>url.startsWith(h.scope)),true);
   assert.deepEqual(h.deleted,['better-life-github:'+path+':old']);
   h.offline();
-  for(const file of ['','index.html','app.js','ai.js','core.js']){
+  for(const file of ['','index.html','app.js','ai.js','core.js','analysis.js','analysis-view.js']){
     let result;const pending=[];
     h.events.fetch({request:new Request(h.scope+file+'?v=1'),respondWith:p=>result=p,waitUntil:p=>pending.push(p)});
     assert.equal((await result).status,200);await Promise.all(pending);

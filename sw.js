@@ -1,9 +1,9 @@
 // Scope all URLs and caches to this GitHub Pages project, including /repo/ paths.
-const VERSION = '1.1.3';
+const VERSION = '1.2.0';
 const BASE = new URL('./', self.location.href);
 const PREFIX = 'better-life-github:' + BASE.pathname + ':';
 const CACHE = PREFIX + VERSION;
-const FILES = ['./', 'index.html', 'app.js', 'core.js', 'ai.js', 'style.css', 'icon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'];
+const FILES = ['./', 'index.html', 'app.js', 'core.js', 'analysis.js', 'analysis-view.js', 'ai.js', 'style.css', 'icon.png', 'apple-touch-icon.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'];
 const URLS = new Set(FILES.map(file => new URL(file, BASE).href));
 
 function usable(response, url) {
