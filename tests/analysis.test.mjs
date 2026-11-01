@@ -20,7 +20,7 @@ test('missing days, incomplete nutrition, zero values and unset goals remain dis
  const d=setup();d.meals=[meal('2026-10-25',300,30),meal('2026-10-25',null,60),meal('2026-10-26',0,0)];
  let rows=dailyMetrics(d,'2026-10-24','2026-10-26');
  assert.equal(rows[0].calories.value,null);assert.equal(rows[0].water.value,null);
- assert.equal(rows[1].calories.value,null);assert.equal(rows[1].calories.known,300);assert.equal(rows[1].calories.reached,null);
+ assert.equal(rows[1].calories.value,300);assert.equal(rows[1].calories.known,300);assert.equal(rows[1].calories.reached,true);
  assert.equal(rows[1].protein.reached,true);assert.equal(rows[2].calories.reached,true);
  d.settings.calories=null;rows=dailyMetrics(d,'2026-10-26','2026-10-26');assert.equal(rows[0].calories.reached,null);
 });
@@ -76,30 +76,45 @@ test('protein subtotal already at target counts even with blank meals on October
  d.settings.protein=90;assert.equal(metricSummary(dailyMetrics(d,'2026-10-25','2026-10-31'),'protein').reached,0);
 });
 
-test('unknown protein never becomes zero or failure, but known zero and exact target remain valid',()=>{
+test('unknown-only days remain unknown; known daily totals including zero and exact target are judged',()=>{
  const d=setup();d.settings.protein=80;
  d.meals=[meal('2026-10-25',500,null),meal('2026-10-26',500,60),meal('2026-10-26',500,null),meal('2026-10-27',500,80),meal('2026-10-27',null,null),meal('2026-10-28',500,0)];
  const rows=dailyMetrics(d,'2026-10-25','2026-10-28');
  assert.equal(rows[0].protein.value,null);assert.equal(rows[0].protein.reached,null);
- assert.equal(rows[1].protein.value,60);assert.equal(rows[1].protein.reached,null);
- assert.equal(rows[2].protein.reached,true);assert.equal(rows[2].calories.value,null);assert.equal(rows[2].calories.reached,null);
+ assert.equal(rows[1].protein.value,60);assert.equal(rows[1].protein.reached,false);
+ assert.equal(rows[2].protein.reached,true);assert.equal(rows[2].calories.value,500);assert.equal(rows[2].calories.reached,true);
  assert.equal(rows[3].protein.value,0);assert.equal(rows[3].protein.reached,false);
 });
 
-test('partial protein is displayed as a lower bound with a separate chart point',()=>{
+test('partial nutrition uses the same solid daily-total chart as water',()=>{
  const d=setup();d.settings.protein=80;d.meals=[meal('2026-10-27',500,82),meal('2026-10-27',200,null)];
  const html=renderAnalysis(d,{period:'7',metric:'protein',from:'2026-10-25',to:'2026-10-31',day:'2026-10-27'},'2026-10-31');
- assert.match(html,/至少 82 g/);assert.match(html,/已達目標，計入達標天數/);assert.match(html,/達標 <\/small>1<small> \/ 7 天/);
+ assert.match(html,/<strong>82 g<\/strong>/);assert.match(html,/依當日已填數值總量判定達標/);assert.match(html,/達標 <\/small>1<small> \/ 7 天/);
  const chart=trendChart(dailyMetrics(d,'2026-10-25','2026-10-31'),'protein',80,'2026-10-27');
- assert.match(chart,/fill:white/);assert.doesNotMatch(chart,/<polyline/);
+ assert.doesNotMatch(chart,/fill:white/);assert.match(chart,/<polyline/);
 });
 
-test('partial successes do not inflate comparison rates or complete-day coverage',()=>{
+test('comparison rates use the same daily totals as achievement cards',()=>{
  const d=setup();d.settings.protein=80;
  for(const date of rangeDays('2026-10-17','2026-10-30')){
   d.meals.push(meal(date,500,date<'2026-10-24'?50:85));
   if(date>='2026-10-24'&&date<='2026-10-26')d.meals.push(meal(date,100,null));
  }
  const findings=periodInsights(d,'2026-10-24','2026-10-30','2026-10-31');
- assert.equal(findings.some(f=>f.key==='protein'&&/百分點/.test(f.text)),false);
+ assert.match(findings.find(f=>f.key==='protein'&&/百分點/.test(f.text)).text,/100 個百分點（0% → 100%）/);
+});
+
+
+test('all four charts and counters use summed daily values independently of blank meal fields',()=>{
+ const d=setup();d.settings.protein=80;
+ d.meals=[meal('2026-10-27',500,40),meal('2026-10-27',700,45),meal('2026-10-27',null,null)];
+ d.water=[{date:'2026-10-27',ml:1200},{date:'2026-10-27',ml:900}];
+ d.sleep=[{date:'2026-10-27',start:'2026-10-26T23:00',end:'2026-10-27T06:00'},{date:'2026-10-27',start:'2026-10-27T14:00',end:'2026-10-27T14:30'}];
+ const rows=dailyMetrics(d,'2026-10-27','2026-10-28');
+ for(const [key,value]of Object.entries({calories:1200,protein:85,water:2100,sleep:450})){
+  assert.equal(rows[0][key].value,value);assert.equal(rows[0][key].reached,true);
+  assert.equal(rows[1][key].value,null);assert.equal(metricSummary(rows,key).reached,1);
+  const chart=trendChart(rows,key,d.settings[{calories:'calories',protein:'protein',water:'waterGoal',sleep:'sleepGoal'}[key]],'2026-10-27');
+  assert.match(chart,/<polyline/);assert.doesNotMatch(chart,/fill:white/);
+ }
 });

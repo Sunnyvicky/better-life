@@ -27,6 +27,15 @@
 @media(max-width:480px){.sleep-overview strong{font-size:25px}.sleep-overview b{font-size:17px}.sleep-card>.row{align-items:flex-start}.sleep-card .record{align-items:flex-start}.habit-summary strong{font-size:18px}}
 
 [hidden]{display:none!important}
+.favorite-item{border-bottom:1px solid var(--line);padding:16px 0}
+.favorite-item p{margin:6px 0 10px}
+.favorite-matches:empty{display:none}
+.favorite-matches{display:grid;gap:6px;max-height:220px;overflow:auto}
+.favorite-match{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:left;display:flex;justify-content:space-between;gap:12px;min-height:44px}
+.favorite-match small{color:var(--muted)}
+.favorite-quantity{background:var(--soft);padding:12px 16px;border-radius:14px}
+.favorite-quantity p{margin:0 0 10px}
+.record-actions{flex-wrap:wrap;max-width:145px;justify-content:flex-end}
 
 .analysis-page{max-width:800px;margin:0 auto}
 .analysis-period{max-width:440px}
