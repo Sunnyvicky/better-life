@@ -27,6 +27,12 @@
 @media(max-width:480px){.sleep-overview strong{font-size:25px}.sleep-overview b{font-size:17px}.sleep-card>.row{align-items:flex-start}.sleep-card .record{align-items:flex-start}.habit-summary strong{font-size:18px}}
 
 [hidden]{display:none!important}
+.label-photo-section{border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:20px;background:#fbfcf9}
+.label-photo-section h3{font-size:16px;margin:0 0 8px}
+.label-photo-section .photo-preview{max-height:340px;background:white}
+.label-confirm{display:flex;align-items:flex-start;gap:9px;font-size:13px;line-height:1.7;margin:14px 0}
+.label-confirm input{flex:0 0 19px;margin-top:3px}
+.serving-equivalent{border-top:1px solid var(--line);padding-top:6px}
 .favorite-item{border-bottom:1px solid var(--line);padding:16px 0}
 .favorite-item p{margin:6px 0 10px}
 .favorite-matches:empty{display:none}
